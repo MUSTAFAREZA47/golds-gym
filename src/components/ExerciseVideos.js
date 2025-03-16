@@ -2,8 +2,8 @@ import React from 'react'
 import { Typography, Box, Stack } from '@mui/material'
 import Loader from './Loader'
 
-const ExerciseVideos = ({ exerciseVideos, name }) => {
-    if (!exerciseVideos.length) return <Loader />
+const ExerciseVideos = ({ exerciseVideos = [], name }) => {
+    if (!exerciseVideos?.length) return <Loader />
 
     return (
         <Box sx={{ mt: { lg: '150px', xs: '20px' }, p: '20px' }}>
@@ -21,21 +21,20 @@ const ExerciseVideos = ({ exerciseVideos, name }) => {
                 Exercise Videos
             </Typography>
             <Stack
-                sx={{
-                    flexDirection: { lg: 'row', xs: 'column' },
-                    gap: { lg: '80px', md: '40px', xs: '20px' },
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
+                direction={{ lg: 'row', xs: 'column' }}
+                spacing={{ lg: 10, md: 5, xs: 3 }}
+                alignItems="flex-start"
+                justifyContent="center"
                 flexWrap="wrap"
             >
-                {exerciseVideos?.slice(0, 3)?.map((item, index) => (
+                {exerciseVideos.slice(0, 3).map((item) => (
                     <a
-                        key={index}
+                        key={item.video.videoId}
                         className="exercise-video"
                         href={`https://www.youtube.com/watch?v=${item.video.videoId}`}
                         target="_blank"
                         rel="noreferrer"
+                        aria-label={`Watch ${item.video.title} on YouTube`}
                         style={{
                             width: '100%',
                             maxWidth: '400px',
@@ -48,8 +47,11 @@ const ExerciseVideos = ({ exerciseVideos, name }) => {
                                 borderRadius: '12px',
                                 objectFit: 'cover',
                             }}
-                            src={item.video.thumbnails[0].url}
-                            alt={item.video.title}
+                            src={
+                                item.video.thumbnails?.[0]?.url ||
+                                '/placeholder.jpg'
+                            }
+                            alt={item.video.title || 'Exercise Video'}
                         />
                         <Box mt={1}>
                             <Typography
@@ -63,10 +65,10 @@ const ExerciseVideos = ({ exerciseVideos, name }) => {
                                 fontWeight={600}
                                 color="#000"
                             >
-                                {item.video.title}
+                                {item.video.title || 'Unknown Video'}
                             </Typography>
                             <Typography fontSize="14px" color="gray">
-                                {item.video.channelName}
+                                {item.video.channelName || 'Unknown Channel'}
                             </Typography>
                         </Box>
                     </a>

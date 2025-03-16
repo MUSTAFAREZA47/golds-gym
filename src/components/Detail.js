@@ -6,6 +6,10 @@ import TargetImage from '../assets/icons/target.png'
 import EquipmentImage from '../assets/icons/equipment.png'
 
 const Detail = ({ exerciseDetail }) => {
+    if (!exerciseDetail) {
+        return <Typography>Loading exercise details...</Typography>
+    }
+
     const { bodyPart, gifUrl, name, target, equipment } = exerciseDetail
 
     const extraDetail = [
@@ -25,7 +29,7 @@ const Detail = ({ exerciseDetail }) => {
             }}
         >
             <img
-                src={gifUrl}
+                src={gifUrl || 'https://via.placeholder.com/500'}
                 alt={name}
                 loading="lazy"
                 className="detail-image"
@@ -76,18 +80,10 @@ const Detail = ({ exerciseDetail }) => {
                         >
                             <img
                                 src={item.icon}
-                                alt={bodyPart}
+                                alt={item.name}
                                 style={{
-                                    width: {
-                                        xs: '40px',
-                                        sm: '45px',
-                                        md: '50px',
-                                    },
-                                    height: {
-                                        xs: '40px',
-                                        sm: '45px',
-                                        md: '50px',
-                                    },
+                                    width: '50px',
+                                    height: '50px',
                                 }}
                             />
                         </Button>

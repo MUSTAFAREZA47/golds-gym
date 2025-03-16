@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import Pagination from '@mui/material/Pagination'
 import { Box, Stack, Typography } from '@mui/material'
 
@@ -8,44 +8,46 @@ import Loader from './Loader'
 
 const Exercises = ({ exercises, setExercises, bodyPart }) => {
     const [currentPage, setCurrentPage] = useState(1)
-    const [exercisesPerPage] = useState(6)
+    const exercisesPerPage = 6
 
     useEffect(() => {
         const fetchExercisesData = async () => {
-            let exercisesData = []
+            if (exercises.length && bodyPart === 'all') return // Avoid refetching if data exists
 
-            if (bodyPart === 'all') {
-                exercisesData = await fetchData(
-                    'https://exercisedb.p.rapidapi.com/exercises',
-                    exerciseOptions,
-                )
-            } else {
-                exercisesData = await fetchData(
-                    `https://exercisedb.p.rapidapi.com/exercises/bodyPart/${bodyPart}`,
-                    exerciseOptions,
-                )
+            try {
+                let exercisesData = []
+                const apiUrl =
+                    bodyPart === 'all'
+                        ? 'https://exercisedb.p.rapidapi.com/exercises'
+                        : `https://exercisedb.p.rapidapi.com/exercises/bodyPart/${bodyPart}`
+
+                exercisesData = await fetchData(apiUrl, exerciseOptions)
+                setExercises(exercisesData)
+            } catch (error) {
+                console.error('Error fetching exercises:', error)
+                setExercises([]) // Ensure state is updated on error
             }
-
-            setExercises(exercisesData)
         }
 
         fetchExercisesData()
-    }, [bodyPart, setExercises])
+    }, [bodyPart, setExercises, exercises.length])
 
     // Pagination Logic
     const indexOfLastExercise = currentPage * exercisesPerPage
     const indexOfFirstExercise = indexOfLastExercise - exercisesPerPage
-    const currentExercises = exercises.slice(
-        indexOfFirstExercise,
-        indexOfLastExercise,
+    const currentExercises = useMemo(
+        () => exercises.slice(indexOfFirstExercise, indexOfLastExercise),
+        [exercises, indexOfFirstExercise, indexOfLastExercise],
     )
 
     const paginate = (event, value) => {
         setCurrentPage(value)
-        window.scrollTo({ top: 1600, behavior: 'smooth' })
+        document
+            .getElementById('exercises')
+            ?.scrollIntoView({ behavior: 'smooth' })
     }
 
-    if (!currentExercises.length) return <Loader />
+    if (!exercises.length) return <Loader />
 
     return (
         <Box id="exercises" sx={{ mt: { lg: '100px', xs: '50px' }, p: '20px' }}>
@@ -56,7 +58,7 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
                 mb="40px"
                 textAlign="center"
             >
-                Showing Results
+                {exercises.length ? 'Showing Results' : 'No Exercises Found'}
             </Typography>
             <Stack
                 direction="row"
@@ -66,8 +68,8 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
                 }}
                 justifyContent="center"
             >
-                {currentExercises.map((exercise, idx) => (
-                    <ExerciseCard key={idx} exercise={exercise} />
+                {currentExercises.map((exercise) => (
+                    <ExerciseCard key={exercise.id} exercise={exercise} />
                 ))}
             </Stack>
             <Stack sx={{ mt: { lg: '100px', xs: '60px' } }} alignItems="center">
@@ -75,7 +77,6 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
                     <Pagination
                         color="primary"
                         shape="rounded"
-                        defaultPage={1}
                         count={Math.ceil(exercises.length / exercisesPerPage)}
                         page={currentPage}
                         onChange={paginate}
